@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Elite Workout Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+--bg:#070b14;
+--card:rgba(17,24,39,.75);
+--accent:#00e5ff;
+--accent2:#00bcd4;
+--text:#f8fafc;
+--muted:#94a3b8;
+--success:#22c55e;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter',sans-serif;
+}
+
+body{
+background:
+radial-gradient(circle at top right,#0f172a 0%,#070b14 45%),
+linear-gradient(135deg,#020617,#0f172a);
+color:var(--text);
+min-height:100vh;
+padding:20px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.hero{
+text-align:center;
+padding:30px 20px;
+margin-bottom:20px;
+}
+
+.hero h1{
+font-size:clamp(2rem,5vw,4rem);
+font-weight:900;
+background:linear-gradient(90deg,#00e5ff,#7dd3fc);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero p{
+margin-top:10px;
+color:var(--muted);
+}
+
+.dashboard{
+position:sticky;
+top:15px;
+z-index:999;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+margin-bottom:30px;
+}
+
+.card{
+background:var(--card);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.08);
+border-radius:24px;
+padding:25px;
+box-shadow:
+0 8px 32px rgba(0,0,0,.4),
+0 0 20px rgba(0,229,255,.05);
+}
+
+.progress-card{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:20px;
+}
+
+.progress-ring{
+width:140px;
+height:140px;
+position:relative;
+}
+
+.progress-ring svg{
+transform:rotate(-90deg);
+}
+
+.progress-ring circle{
+fill:none;
+stroke-width:10;
+}
+
+.bg-ring{
+stroke:#1e293b;
+}
+
+.fg-ring{
+stroke:var(--accent);
+stroke-linecap:round;
+stroke-dasharray:377;
+stroke-dashoffset:377;
+transition:.5s ease;
+}
+
+.progress-text{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+font-weight:800;
+}
+
+.stats h3{
+margin-bottom:10px;
+}
+
+.streak{
+font-size:32px;
+font-weight:900;
+color:#fbbf24;
+}
+
+button{
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+border:none;
+padding:12px 18px;
+border-radius:12px;
+font-weight:700;
+cursor:pointer;
+transition:.3s;
+}
+
+button:hover{
+transform:translateY(-2px);
+}
+
+.day{
+background:var(--card);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.08);
+border-radius:22px;
+margin-bottom:20px;
+overflow:hidden;
+}
+
+.day-header{
+padding:20px;
+cursor:pointer;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:700;
+font-size:1.1rem;
+}
+
+.day-header:hover{
+background:rgba(255,255,255,.03);
+}
+
+.day-content{
+padding:20px;
+display:none;
+}
+
+.day.active .day-content{
+display:block;
+}
+
+.exercise{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:15px;
+padding:14px;
+background:#111827;
+border-radius:14px;
+margin-bottom:10px;
+}
+
+.exercise label{
+display:flex;
+align-items:center;
+gap:12px;
+flex:1;
+cursor:pointer;
+}
+
+.exercise input{
+width:20px;
+height:20px;
+accent-color:var(--accent);
+}
+
+.exercise a{
+text-decoration:none;
+color:black;
+background:var(--accent);
+padding:10px 14px;
+border-radius:10px;
+font-weight:700;
+}
+
+.exercise a:hover{
+background:white;
+}
+
+.notes{
+margin-top:30px;
+}
+
+textarea{
+width:100%;
+height:150px;
+background:#0f172a;
+border:1px solid #334155;
+color:white;
+padding:15px;
+border-radius:15px;
+resize:vertical;
+}
+
+.complete-banner{
+display:none;
+text-align:center;
+padding:20px;
+margin-bottom:20px;
+border-radius:20px;
+background:linear-gradient(135deg,#22c55e,#16a34a);
+font-size:1.3rem;
+font-weight:800;
+}
+
+@media(max-width:768px){
+
+.exercise{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.exercise a{
+width:100%;
+text-align:center;
+}
+
+.progress-card{
+flex-direction:column;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="hero">
+<h1>🏋️ Rafo's Workout Dashboard</h1>
+<p>Track your progress. Stay consistent. Build your best physique.</p>
+</div>
+
+<div id="completeBanner" class="complete-banner">
+🎉 WEEK COMPLETE! Amazing work!
+</div>
+
+<div class="dashboard">
+
+<div class="card progress-card">
+
+<div class="progress-ring">
+<svg width="140" height="140">
+<circle class="bg-ring" cx="70" cy="70" r="60"></circle>
+<circle id="progressCircle" class="fg-ring" cx="70" cy="70" r="60"></circle>
+</svg>
+<div id="percent" class="progress-text">0%</div>
+</div>
+
+<div class="stats">
+<h3>Workout Progress</h3>
+<p><span id="completed">0</span> / <span id="total">0</span> exercises</p>
+</div>
+
+</div>
+
+<div class="card">
+<h3>🔥 Streak</h3>
+<div id="streak" class="streak">0</div>
+<p>Days</p>
+</div>
+
+<div class="card">
+<h3>Actions</h3>
+<br>
+<button onclick="resetProgress()">Reset Week</button>
+</div>
+
+</div>
+
+<!-- DAY TEMPLATE -->
+<div class="day active">
+<div class="day-header">Sunday – Lower Body A ▼</div>
+<div class="day-content">
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Squats — 4 × 8–10</label><a target="_blank" href="https://www.youtube.com/results?search_query=squat+exercise">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Hip Thrust — 4 × 10–12</label><a target="_blank" href="https://www.youtube.com/results?search_query=hip+thrust">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Leg Press — 3 × 10–12</label><a target="_blank" href="https://www.youtube.com/results?search_query=leg+press">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Bulgarian Split Squat</label><a target="_blank" href="https://www.youtube.com/results?search_query=bulgarian+split+squat">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Leg Extension</label><a target="_blank" href="https://www.youtube.com/results?search_query=leg+extension">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Calf Raises</label><a target="_blank" href="https://www.youtube.com/results?search_query=calf+raises">Demo</a></div>
+
+</div>
+</div>
+
+<div class="day">
+<div class="day-header">Monday – Upper Body A ▼</div>
+<div class="day-content">
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Lat Pulldown</label><a target="_blank" href="https://www.youtube.com/results?search_query=lat+pulldown">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Seated Cable Row</label><a target="_blank" href="https://www.youtube.com/results?search_query=seated+cable+row">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Shoulder Press</label><a target="_blank" href="https://www.youtube.com/results?search_query=shoulder+press">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Cable Lateral Raise</label><a target="_blank" href="https://www.youtube.com/results?search_query=cable+lateral+raise">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Face Pull</label><a target="_blank" href="https://www.youtube.com/results?search_query=face+pull">Demo</a></div>
+
+</div>
+</div>
+
+<div class="day">
+<div class="day-header">Tuesday – Lower Body B ▼</div>
+<div class="day-content">
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Romanian Deadlift</label><a target="_blank" href="https://www.youtube.com/results?search_query=romanian+deadlift">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Hip Thrust</label><a target="_blank" href="https://www.youtube.com/results?search_query=hip+thrust">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Walking Lunges</label><a target="_blank" href="https://www.youtube.com/results?search_query=walking+lunges">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Seated Leg Curl</label><a target="_blank" href="https://www.youtube.com/results?search_query=seated+leg+curl">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Cable Kickbacks</label><a target="_blank" href="https://www.youtube.com/results?search_query=cable+kickback">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Abduction Machine</label><a target="_blank" href="https://www.youtube.com/results?search_query=hip+abduction+machine">Demo</a></div>
+
+</div>
+</div>
+
+<div class="day">
+<div class="day-header">Wednesday – Upper Body B ▼</div>
+<div class="day-content">
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Chest Press Machine</label><a target="_blank" href="https://www.youtube.com/results?search_query=chest+press+machine">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Incline Dumbbell Press</label><a target="_blank" href="https://www.youtube.com/results?search_query=incline+dumbbell+press">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Dumbbell Row</label><a target="_blank" href="https://www.youtube.com/results?search_query=dumbbell+row">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Triceps Pushdown</label><a target="_blank" href="https://www.youtube.com/results?search_query=triceps+pushdown">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Hammer Curl</label><a target="_blank" href="https://www.youtube.com/results?search_query=hammer+curl">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Lateral Raises</label><a target="_blank" href="https://www.youtube.com/results?search_query=lateral+raise">Demo</a></div>
+
+</div>
+</div>
+
+<div class="day">
+<div class="day-header">Thursday – Fat Burn + Full Body ▼</div>
+<div class="day-content">
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Goblet Squats</label><a target="_blank" href="https://www.youtube.com/results?search_query=goblet+squat">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Kettlebell Deadlift</label><a target="_blank" href="https://www.youtube.com/results?search_query=kettlebell+deadlift">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Step Ups</label><a target="_blank" href="https://www.youtube.com/results?search_query=step+ups">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Cable Row</label><a target="_blank" href="https://www.youtube.com/results?search_query=cable+row">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Push Ups</label><a target="_blank" href="https://www.youtube.com/results?search_query=push+ups">Demo</a></div>
+
+<div class="exercise"><label><input class="cb" type="checkbox"> Glute Bridge</label><a target="_blank" href="https://www.youtube.com/results?search_query=glute+bridge">Demo</a></div>
+
+</div>
+</div>
+
+<div class="day">
+<div class="day-header">Friday & Saturday – Recovery ▼</div>
+<div class="day-content">
+<p>✔ Walking</p><br>
+<p>✔ Stretching</p><br>
+<p>✔ Yoga</p><br>
+<p>✔ Light Cardio</p>
+</div>
+</div>
+
+<div class="card notes">
+<h3>📝 Notes</h3>
+<br>
+<textarea id="notes" placeholder="Workout notes, PRs, goals..."></textarea>
+</div>
+
+</div>
+
+<script>
+
+const boxes=document.querySelectorAll('.cb');
+const circle=document.getElementById('progressCircle');
+const percent=document.getElementById('percent');
+
+function updateProgress(){
+
+const total=boxes.length;
+const completed=[...boxes].filter(b=>b.checked).length;
+
+document.getElementById('total').textContent=total;
+document.getElementById('completed').textContent=completed;
+
+const progress=Math.round((completed/total)*100);
+
+percent.textContent=progress+"%";
+
+const circumference=377;
+const offset=circumference-(progress/100)*circumference;
+
+circle.style.strokeDashoffset=offset;
+
+localStorage.setItem(
+'workoutChecks',
+JSON.stringify([...boxes].map(x=>x.checked))
+);
+
+if(progress===100){
+document.getElementById('completeBanner').style.display='block';
+}else{
+document.getElementById('completeBanner').style.display='none';
+}
+
+}
+
+boxes.forEach(box=>{
+box.addEventListener('change',updateProgress);
+});
+
+const savedChecks=
+JSON.parse(localStorage.getItem('workoutChecks'));
+
+if(savedChecks){
+boxes.forEach((box,i)=>{
+box.checked=savedChecks[i];
+});
+}
+
+updateProgress();
+
+document.querySelectorAll('.day-header').forEach(header=>{
+header.addEventListener('click',()=>{
+header.parentElement.classList.toggle('active');
+});
+});
+
+const notes=document.getElementById('notes');
+
+notes.value=localStorage.getItem('workoutNotes')||'';
+
+notes.addEventListener('input',()=>{
+localStorage.setItem('workoutNotes',notes.value);
+});
+
+let streak=localStorage.getItem('workoutStreak')||0;
+document.getElementById('streak').textContent=streak;
+
+function resetProgress(){
+
+if(confirm('Reset all workout progress?')){
+
+boxes.forEach(box=>box.checked=false);
+
+localStorage.removeItem('workoutChecks');
+
+updateProgress();
+
+}
+
+}
+</script>
+
+</body>
+</html>
